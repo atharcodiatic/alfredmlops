@@ -1,0 +1,47 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  namespace: default
+  labels:
+    app: nginx
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: nginx
+          image: atharhussain/helpdesk_repo:nginx
+          command: ["nginx", "-g", "daemon off;"]
+          ports:
+            - containerPort: 8080
+          imagePullPolicy: Always
+      initContainers:
+        - name: wait-for-web
+          image: busybox
+          command: ['sh', '-c', 'until nc -z web 8000; do echo waiting for web; sleep 2; done;']
+
+          
+      imagePullSecrets:
+      # this secret is stored in etcd and created by using : kubectl create secret docker-registry \dockerusername
+        - name: regcred
+        
+        
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec: 
+  selector:
+    app: nginx
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080

@@ -1,0 +1,32 @@
+version: "3"
+services:
+  web:
+    build: .
+    # ports:
+    #   - "8000:8000"
+    expose:
+      - "8000"
+
+    command: bash -c " python manage.py collectstatic --noinput && gunicorn helpdesk.wsgi -b 0.0.0.0:8000"
+
+    volumes:
+      - ./helpdesk:/app/
+      - static-data:/app/staticfiles/
+      - media-data:/media
+    depends_on:
+      - nginx
+
+  nginx:
+    build:
+      context: .
+      dockerfile: ngnix.Dockerfile
+    restart: always
+    volumes:
+      - static-data:/app/staticfiles/
+      - media-data:/media
+
+    ports:
+      - "8080:8080"
+volumes:
+  static-data:
+  media-data:

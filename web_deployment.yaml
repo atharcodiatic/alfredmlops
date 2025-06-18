@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-deployment
+  namespace: default
+  labels:
+    app: web
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: web
+  template:
+    metadata:
+      labels:
+        app: web
+    spec:
+      containers:
+        - name: web
+          image: atharhussain/helpdesk_repo:web-v2
+          imagePullPolicy: Always
+          command: ["sh", "-c"]
+          args: ["python manage.py collectstatic --noinput && gunicorn helpdesk.wsgi -b 0.0.0.0:8000"]
+          ports:
+            - containerPort: 8000
+          
+      imagePullSecrets:
+      # this secret is stored in etcd and created by using : kubectl create secret docker-registry \dockerusername
+        - name: regcred
+        
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: web
+spec: 
+  selector:
+    app: web
+  ports:
+    - protocol: TCP
+      port: 8000
+      targetPort: 8000
