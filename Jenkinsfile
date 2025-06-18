@@ -5,8 +5,8 @@ pipeline{
         stage('build with docker-compose'){
             steps {
                 sh 'echo "Hello World"'
-                sh  'docker-compose build'
-                sh 'docker-compose up -d'
+                sh  'sudo docker-compose build'
+                sh 'sudo docker-compose up -d'
 
                 script {timeout(time: 50, unit: 'SECONDS') {
                         waitUntil {
@@ -16,7 +16,7 @@ pipeline{
                         }
                     }
                     }
-                sh 'docker-compose down'
+                sh 'sudo docker-compose down'
             } 
         post{
             always{ echo 'build by dockerstage'}
