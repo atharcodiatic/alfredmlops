@@ -5,17 +5,18 @@ pipeline{
         stage('build with docker-compose'){
             steps {
                 sh 'echo "Hello World"'
-                sh  'sudo docker-compose build'
-                sh 'sudo docker-compose up -d'
+                sh  'docker-compose build'
+                sh 'docker-compose up -d'
 
                 script {timeout(time: 50, unit: 'SECONDS') {
                         waitUntil {
                             def result = sh(script: 'curl -s -o /dev/null -w "%{http_code}" http://localhost:8080', returnStdout: true).trim()
                             return result == '200'
+                            sh "echo ${result}"
                         }
                     }
                     }
-                sh 'sudo docker-compose down'
+                sh 'docker-compose down'
             } 
         post{
             always{ echo 'build by dockerstage'}
@@ -39,7 +40,7 @@ pipeline{
                     if (build_status ==0){
                         echo 'service is ready'
                         archiveArtifacts artifacts: 'build_result.txt', fingerprint: true
-                    } else{ echo " docker-compose deployment failed"}
+                    } else{ echo "k8s deployment failed"}
                     }
             }
                 sh 'kubectl delete deployments --all'
@@ -47,7 +48,7 @@ pipeline{
         }
         post {
                 always { mail to: "athar110011@gmail.com",
-                subject: " build results: ${currentBuild.result} ${stageResult}" ,
+                subject: " build results: ${currentBuild.result}" ,
                 body: "The Jenkins pipeline build has completed. Please review the details."
             }
             }
