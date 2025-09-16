@@ -11,8 +11,9 @@ pipeline{
                 script {timeout(time: 50, unit: 'SECONDS') {
                         waitUntil {
                             def result = sh(script: 'curl -s -o /dev/null -w "%{http_code}" http://localhost:8080', returnStdout: true).trim()
-                            return result == '200'
                             sh "echo ${result}"
+                            return result == '200'
+                            
                         }
                     }
                     }
@@ -29,16 +30,17 @@ pipeline{
                     def applyYaml = { file ->
                         sh "kubectl apply -f ${file}"
                     }
-
-                    applyYaml('ingress.yaml')
-                    applyYaml('deployment.yaml')
                     applyYaml('web_deployment.yaml')
+                    applyYaml('deployment.yaml')
+                    applyYaml('ingress.yaml')
+                    
 
                     timeout(time: 50, unit: 'SECONDS'){
 
                     def build_status = sh (script: 'curl http://helpdesk.local', returnStatus:true)
                     if (build_status ==0){
                         echo 'service is ready'
+                        sh 'echo "Build log" > build_result.txt'
                         archiveArtifacts artifacts: 'build_result.txt', fingerprint: true
                     } else{ echo "k8s deployment failed"}
                     }
